@@ -9,54 +9,58 @@ const FEEDBACK_MESSAGES = {
   ERROR: '😠'
 };
 
+const validateInput = (value, correctAnswer, level) => {
+  const numericValue = parseInt(value, 10);
+  return level === 3 
+    ? numericValue === correctAnswer && numericValue % 10 === 0
+    : numericValue === correctAnswer;
+};
+
+const findNextEmptyPosition = (currentIdx, inputs, revealedPositions) => {
+  for (let i = currentIdx + 1; i < inputs.length; i++) {
+    if (!revealedPositions.includes(i) && !inputs[i]) {
+      return i;
+    }
+  }
+  return currentIdx;
+};
+
+const NumberButton = ({ number, onClick }) => (
+  <button
+    onClick={() => onClick(number)}
+    className="w-[72px] h-[72px] rounded-full border border-gray-200
+             flex items-center justify-center
+             text-2xl text-black
+             transition-colors duration-200
+             hover:border-gray-300"
+  >
+    {number}
+  </button>
+);
+
 export const NumberPad = () => {
   const dispatch = useAppDispatch();
   const { activeIdx, inputs, stage, level } = useAppSelector(state => state.games.missingNumber);
   const revealedPositions = STAGE_REVEALS[stage] || [];
 
   const handleNumberClick = (number) => {
-    // Don't handle input for revealed positions
-    if (revealedPositions.includes(activeIdx)) {
-      return;
-    }
+    if (revealedPositions.includes(activeIdx)) return;
 
-    // Get current input value and correct answer
     const currentValue = inputs[activeIdx] || '';
     const newValue = currentValue + number;
     const answers = generateAnswers(level);
     const correctAnswer = answers[activeIdx];
     const expectedLength = String(correctAnswer).length;
 
-    // Only allow input if not exceeding expected length
     if (newValue.length <= expectedLength) {
-      // Update input value
       dispatch(setInput({ value: newValue, index: activeIdx }));
 
-      // Check if input is complete
       if (newValue.length === expectedLength) {
-        const numericValue = parseInt(newValue, 10);
-        const numericCorrectAnswer = parseInt(correctAnswer, 10);
-        
-        // For Level 3, check if it's a multiple of 10
-        const isCorrect = level === 3 
-          ? numericValue === numericCorrectAnswer && numericValue % 10 === 0
-          : numericValue === numericCorrectAnswer;
-
-        if (isCorrect) {
+        if (validateInput(newValue, correctAnswer, level)) {
           dispatch(setMessage(FEEDBACK_MESSAGES.SUCCESS));
-          
-          // Find next empty non-revealed position
-          let nextNonRevealed = activeIdx;
-          for (let i = activeIdx + 1; i < inputs.length; i++) {
-            if (!revealedPositions.includes(i) && !inputs[i]) {
-              nextNonRevealed = i;
-              break;
-            }
-          }
-          
-          // Only move to next position if we found one and current input is valid
-          if (nextNonRevealed !== activeIdx && !revealedPositions.includes(nextNonRevealed)) {
-            dispatch(setActiveIndex(nextNonRevealed));
+          const nextIdx = findNextEmptyPosition(activeIdx, inputs, revealedPositions);
+          if (nextIdx !== activeIdx) {
+            dispatch(setActiveIndex(nextIdx));
           }
         } else {
           dispatch(setMessage(FEEDBACK_MESSAGES.ERROR));
@@ -67,16 +71,15 @@ export const NumberPad = () => {
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4 p-4">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((num) => (
-        <Button
-          key={num}
-          onClick={() => handleNumberClick(num)}
-          className="rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 text-2xl transition-colors duration-200"
-        >
-          {num}
-        </Button>
-      ))}
+    <div className="w-full max-w-[280px] mx-auto">
+      <div className="grid grid-cols-3 gap-6 place-items-center">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+          <NumberButton key={num} number={num} onClick={handleNumberClick} />
+        ))}
+      </div>
+      <div className="flex justify-center mt-6">
+        <NumberButton number={0} onClick={handleNumberClick} />
+      </div>
     </div>
   );
 }; 

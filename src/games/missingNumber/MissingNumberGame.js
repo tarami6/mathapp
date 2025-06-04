@@ -1,14 +1,35 @@
 // games/missingNumber/MissingNumberGame.jsx
 import React from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { setMessage, resetGame } from "../../store/slices/gamesSlice";
+import { resetGame } from "../../store/slices/gamesSlice";
 import Feedback from "./components/Feedback";
 import ResetButton from "./components/ResetButton";
 import AnswerBoxes from "./components/AnswerBoxes";
 import { NumberPad } from "./components/NumberPad";
 import GameComplete from "./components/GameComplete";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/card";
+import { Card, CardContent } from "./components/card";
 import { motion, AnimatePresence } from "framer-motion";
+import { generateHintSequence } from "./constants";
+
+const SequenceHint = ({ level }) => {
+  const sequence = generateHintSequence(level);
+  return (
+    <div className="flex flex-col gap-3 mb-3">
+      <div className="text-gray-600 text-base">Numbers in this level:</div>
+      <div className="grid grid-cols-10 gap-1">
+        {sequence.map((num, index) => (
+          <div
+            key={index}
+            className="aspect-square p-2 bg-gray-50 rounded-lg border border-gray-200
+                     flex items-center justify-center text-blue-600 text-sm"
+          >
+            {num}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 function MissingNumberGame() {
   const dispatch = useAppDispatch();
@@ -16,50 +37,20 @@ function MissingNumberGame() {
     inputs, 
     activeIdx, 
     message, 
-    mistakes, 
-    stage, 
     level,
-    isGameFinished,
-    isSpecialStage
+    isGameFinished 
   } = useAppSelector((state) => state.games.missingNumber);
 
   const handleReset = () => {
     dispatch(resetGame());
   };
 
-  // Get the title based on level and special stage
-  const getLevelTitle = () => {
-    if (isSpecialStage) {
-      return (
-        <>
-          <div className="text-blue-600">Special Stage: Counting by Tens</div>
-          <div className="text-lg text-gray-600 mt-1">10, 20, 30, ... 100</div>
-        </>
-      );
-    }
-
-    if (level === 3) {
-      return (
-        <>
-          <div className="text-blue-600">Level 3: Counting by Tens</div>
-          <div className="text-lg text-gray-600 mt-1">10, 20, 30, ... 100</div>
-        </>
-      );
-    }
-
-    // Calculate the current series range for other levels
-    const seriesStart = (level - 1) * 10 + 1;
-    const seriesEnd = level * 10;
-    return `Numbers ${seriesStart} to ${seriesEnd}`;
-  };
-
-  // If game is finished, show completion screen
   if (isGameFinished) {
     return <GameComplete onRestart={handleReset} />;
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <AnimatePresence mode="wait">
         <motion.div
           key={level}
@@ -67,32 +58,27 @@ function MissingNumberGame() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-lg"
+          className="w-full max-w-md px-4"
         >
-          <Card className="shadow-lg">
-            {mistakes.length > 0 && (
-              <div className="absolute top-4 right-4 text-red-600 font-bold text-lg">
-                ❌ {mistakes.length}
+          <Card className="shadow-lg py-8">
+            <CardContent className="flex flex-col items-center">
+              <h1 className="text-2xl font-normal mb-8">Numbers 1 to 10</h1>
+              
+              <div className="w-full px-3">
+                <SequenceHint level={level} />
+                <AnswerBoxes
+                  inputs={inputs}
+                  activeIdx={activeIdx}
+                />
               </div>
-            )}
 
-            <CardHeader>
-              <CardTitle className="text-center text-2xl font-semibold mt-4">
-                {getLevelTitle()}
-              </CardTitle>
-            </CardHeader>
+              {message && <Feedback message={message} />}
 
-            <CardContent className="flex flex-col items-center gap-6 px-2">
-              <AnswerBoxes
-                inputs={inputs}
-                activeIdx={activeIdx}
-              />
+              <div className="mt-12">
+                <NumberPad />
+              </div>
 
-              <Feedback message={message} />
-
-              <NumberPad />
-
-              <div className="flex gap-4 mt-2">
+              <div className="mt-8">
                 <ResetButton onClick={handleReset} />
               </div>
             </CardContent>
