@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +9,104 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+container {
+  background: linear-gradient(rgb(255, 251, 231) 0%, rgb(255 255 255) 40%, rgb(255 255 255) 100%);
+  min-height: 100vh;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+  user-select: none;
+  position: relative;
+}
+
+.mistake-counter {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ff1744;
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: 900;
+  margin-top: 1.5rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  color: #f37021;
+}
+
+.answer-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 6rem;
+}
+
+.answer-box {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 10px;
+  background: #e3f7ff;
+  font-weight: bold;
+  font-size: 1.3rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.answer-box.active {
+  border: 2px solid #1976d2;
+}
+
+.answer-box.correct {
+  color: #43c600;
+}
+
+.answer-box.incorrect {
+  color: #ff1744;
+}
+
+.answer-box.empty {
+  color: #1976d2;
+}
+
+.button-row {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 3.5rem;
+}
+
+.number-button {
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fffbe7 60%, #ffe082 100%);
+  color: #1976d2;
+  font-weight: bold;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Utility class for disabling text selection */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
