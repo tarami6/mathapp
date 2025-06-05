@@ -1,18 +1,20 @@
 import React from 'react';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useAppDispatch } from '../../../store/hooks';
 import { setActiveIndex } from '../../../store/slices/gamesSlice';
-import { STAGE_REVEALS } from '../constants';
 
 const AnswerBox = ({ input, isActive, onClick }) => (
   <div
     onClick={onClick}
-    style={{ width: '32px', height: '32px' }}
+    data-testid="answer-box"
+    data-filled={Boolean(input)}
     className={`
+      w-8 h-8
       flex items-center justify-center
-      text-sm
+      text-sm font-medium
       transition-colors duration-200
-      ${isActive ? 'border border-blue-500' : 'border border-gray-100'}
+      ${isActive ? 'border-2 border-blue-500' : 'border border-gray-200'}
       rounded bg-white
+      ${input ? 'text-black' : 'text-gray-400'}
     `}
   >
     {input || ''}
@@ -21,11 +23,10 @@ const AnswerBox = ({ input, isActive, onClick }) => (
 
 const AnswerBoxes = ({ inputs, activeIdx }) => {
   const dispatch = useAppDispatch();
-  const { stage } = useAppSelector(state => state.games.missingNumber);
-  const revealedPositions = STAGE_REVEALS[stage] || [];
 
   const handleBoxClick = (index) => {
-    if (!revealedPositions.includes(index)) {
+    // Only allow clicking empty boxes
+    if (!inputs[index]) {
       dispatch(setActiveIndex(index));
     }
   };

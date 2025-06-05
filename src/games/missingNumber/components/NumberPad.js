@@ -1,24 +1,20 @@
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { setInput, setActiveIndex, setMessage } from '../../../store/slices/gamesSlice';
-import { Button } from './button';
-import { STAGE_REVEALS, generateAnswers } from '../constants';
+import { generateAnswers } from '../constants';
 
 const FEEDBACK_MESSAGES = {
-  SUCCESS: '🎉',
   ERROR: '😠'
 };
 
-const validateInput = (value, correctAnswer, level) => {
-  const numericValue = parseInt(value, 10);
-  return level === 3 
-    ? numericValue === correctAnswer && numericValue % 10 === 0
-    : numericValue === correctAnswer;
-};
-
-const findNextEmptyPosition = (currentIdx, inputs, revealedPositions) => {
+const findNextEmptyPosition = (currentIdx, inputs) => {
   for (let i = currentIdx + 1; i < inputs.length; i++) {
-    if (!revealedPositions.includes(i) && !inputs[i]) {
+    if (!inputs[i]) {
+      return i;
+    }
+  }
+  for (let i = 0; i < currentIdx; i++) {
+    if (!inputs[i]) {
       return i;
     }
   }
@@ -28,6 +24,8 @@ const findNextEmptyPosition = (currentIdx, inputs, revealedPositions) => {
 const NumberButton = ({ number, onClick }) => (
   <button
     onClick={() => onClick(number)}
+    role="button"
+    name={String(number)}
     className="w-[72px] h-[72px] rounded-full border border-gray-200
              flex items-center justify-center
              text-2xl text-black
@@ -40,30 +38,38 @@ const NumberButton = ({ number, onClick }) => (
 
 export const NumberPad = () => {
   const dispatch = useAppDispatch();
-  const { activeIdx, inputs, stage, level } = useAppSelector(state => state.games.missingNumber);
-  const revealedPositions = STAGE_REVEALS[stage] || [];
+  const { activeIdx, inputs, level } = useAppSelector(state => state.games.missingNumber);
 
   const handleNumberClick = (number) => {
-    if (revealedPositions.includes(activeIdx)) return;
-
-    const currentValue = inputs[activeIdx] || '';
-    const newValue = currentValue + number;
+    const currentInput = inputs[activeIdx] || '';
     const answers = generateAnswers(level);
     const correctAnswer = answers[activeIdx];
-    const expectedLength = String(correctAnswer).length;
+    
+    // If the current input is already correct, don't allow more input
+    if (currentInput && parseInt(currentInput, 10) === correctAnswer) {
+      return;
+    }
 
-    if (newValue.length <= expectedLength) {
-      dispatch(setInput({ value: newValue, index: activeIdx }));
+    // For single-digit answers (1-9)
+    if (correctAnswer <= 9) {
+      dispatch(setInput({ value: String(number), index: activeIdx }));
+      return;
+    }
 
-      if (newValue.length === expectedLength) {
-        if (validateInput(newValue, correctAnswer, level)) {
-          dispatch(setMessage(FEEDBACK_MESSAGES.SUCCESS));
-          const nextIdx = findNextEmptyPosition(activeIdx, inputs, revealedPositions);
-          if (nextIdx !== activeIdx) {
-            dispatch(setActiveIndex(nextIdx));
-          }
+    // For number 10
+    if (correctAnswer === 10) {
+      if (currentInput === '') {
+        // First digit must be 1
+        if (number === 1) {
+          dispatch(setInput({ value: '1', index: activeIdx }));
         } else {
-          dispatch(setMessage(FEEDBACK_MESSAGES.ERROR));
+          dispatch(setInput({ value: '', index: activeIdx }));
+        }
+      } else if (currentInput === '1') {
+        // Second digit must be 0
+        if (number === 0) {
+          dispatch(setInput({ value: '10', index: activeIdx }));
+        } else {
           dispatch(setInput({ value: '', index: activeIdx }));
         }
       }

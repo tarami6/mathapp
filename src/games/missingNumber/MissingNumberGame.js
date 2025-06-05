@@ -20,6 +20,7 @@ const SequenceHint = ({ level }) => {
         {sequence.map((num, index) => (
           <div
             key={index}
+            data-testid="reference-number"
             className="aspect-square p-2 bg-gray-50 rounded-lg border border-gray-200
                      flex items-center justify-center text-blue-600 text-sm"
           >
@@ -38,6 +39,7 @@ function MissingNumberGame() {
     activeIdx, 
     message, 
     level,
+    stage,
     isGameFinished 
   } = useAppSelector((state) => state.games.missingNumber);
 
@@ -49,8 +51,26 @@ function MissingNumberGame() {
     return <GameComplete onRestart={handleReset} />;
   }
 
+  // Create test state string
+  const testState = {
+    level,
+    stage,
+    activeIdx,
+    inputs: inputs.map(input => input || '_'),
+    message
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      {/* Invisible test state element */}
+      <div 
+        data-testid="game-state"
+        className="sr-only"
+        aria-hidden="true"
+      >
+        {JSON.stringify(testState)}
+      </div>
+
       <AnimatePresence mode="wait">
         <motion.div
           key={level}
